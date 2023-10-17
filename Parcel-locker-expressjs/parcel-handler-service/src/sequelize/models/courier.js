@@ -11,14 +11,30 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      /*
+      //Parcel_during_shipping kapcsolótábla
+      //Kapcsolat a Parcel és a Courier között
+      Courier.belongsToMany(models.Parcel, {
+        through: "parcel_during_shipping",
+        foreignKey: "courierId",
+        otherKey: "parcelId",
+        as: "parcels"
+      })
+      */
+
+      Courier.hasMany(models.Parcel, {
+        foreignKey: "courierId",
+        as: "parcels"
+      });
     }
   }
   Courier.init({
-    id:{
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
-    } ,
+    },
     uniqueCourierId: {
       type: DataTypes.STRING,
       allowNull: false,

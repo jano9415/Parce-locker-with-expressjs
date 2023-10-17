@@ -11,6 +11,22 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      /*
+      //Parcel_during_shipping kapcsolótábla
+      //Kapcsolat a Parcel és a Courier között
+      Parcel.belongsTo(models.Courier, {
+        through: "parcel_during_shipping",
+        foreignKey: "parcelId",
+        otherKey: "courierId",
+        as: "couriers"
+      });
+      */
+
+      Parcel.belongsTo(models.Courier, {
+        foreignKey: "courierId",
+        as: "courier"
+      });
     }
   }
   Parcel.init({

@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      //Kapcsolat a Parcel és a User között
+      User.hasMany(models.Parcel, {
+        foreignKey: "userId",
+        as: "parcels"
+      })
     }
   }
   User.init({

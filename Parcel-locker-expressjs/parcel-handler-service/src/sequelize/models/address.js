@@ -11,6 +11,18 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      //Kapcsolat a Parcel locker és az Address között
+      Address.hasOne(models.ParcelLocker, {
+        foreignKey: "addressId",
+        as: "parcelLocker"
+      })
+
+      //Kapcsolat a Store és az Address között
+      Address.hasOne(models.Store, {
+        foreignKey: "addressId",
+        as: "store"
+      })
     }
   }
   Address.init({

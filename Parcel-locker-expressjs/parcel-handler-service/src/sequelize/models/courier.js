@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
 
+      
       /*
       //Parcel_during_shipping kapcsolótábla
       //Kapcsolat a Parcel és a Courier között
@@ -22,11 +23,13 @@ module.exports = (sequelize, DataTypes) => {
         as: "parcels"
       })
       */
-
+      
+      //Kapcsolat a Parcel és a Courier között
       Courier.hasMany(models.Parcel, {
         foreignKey: "courierId",
         as: "parcels"
       });
+      
     }
   }
   Courier.init({
@@ -39,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
-    },
+    },/*
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -48,6 +51,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     }
+    */
   }, {
     sequelize,
     modelName: 'Courier',

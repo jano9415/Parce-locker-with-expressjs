@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
 
+
       /*
       //Parcel_during_shipping kapcsolótábla
       //Kapcsolat a Parcel és a Courier között
@@ -19,14 +20,52 @@ module.exports = (sequelize, DataTypes) => {
         through: "parcel_during_shipping",
         foreignKey: "parcelId",
         otherKey: "courierId",
-        as: "couriers"
+        as: "courier"
       });
       */
 
+      //Kapcsolat a Parcel és a Parcel locker között. Éppen melyik automatában van a csomag
+      Parcel.belongsTo(models.ParcelLocker, {
+        foreignKey: "parcelLockerId",
+        as: "parcelLocker"
+      })
+
+      //Kapcsolat a Parcel és a Courier között
       Parcel.belongsTo(models.Courier, {
         foreignKey: "courierId",
         as: "courier"
       });
+
+      //Kapcsolat a Courier és a Store között
+      Parcel.belongsTo(models.Store, {
+        foreignKey: "storeId",
+        as: "area"
+      })
+
+      //Kapcsolat a Parcel és a User között
+      Parcel.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "user"
+      })
+
+      //Kapcsolat a Parcel és a Parcel locker között. Feladási automata
+      Parcel.belongsTo(models.ParcelLocker, {
+        foreignKey: "shippingFromParcelLockerId",
+        as: "shippingFrom"
+      })
+
+      //Kapcsolat a Parcel és a Parcel locker között. Érkezési automata
+      Parcel.belongsTo(models.ParcelLocker, {
+        foreignKey: "shippingToParcelLockerId",
+        as: "shippingTo"
+      })
+
+      //Kapcsolat a Parcel és a Box között
+      Parcel.belongsTo(models.Box, {
+        foreignKey: "boxId",
+        as: "box"
+      })
+
     }
   }
   Parcel.init({
@@ -39,6 +78,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    /*
     size: {
       type: DataTypes.STRING,
       allowNull: false
@@ -140,7 +180,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     pickingUpTimeFromSecondStoreByCourier: {
       type: DataTypes.TIME,
-    },
+    },*/
+
 
 
   }, {

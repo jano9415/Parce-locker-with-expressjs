@@ -1,4 +1,7 @@
 const { Parcel, sequelize, Courier } = require("../sequelize/models");
+const parcelService = require("../service/ParcelService");
+
+
 
 const getParcels = async (req, res) => {
 

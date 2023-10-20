@@ -1,9 +1,25 @@
 const parcelLockerService = require("../service/ParcelLockerService");
 
-const getParcelLocker = (req, res) => {
-    res.send("Ez a parcel locker");
+
+const getParcelLockersForChoice = (req, res) => {
+    parcelLockerService.getParcelLockersForChoice();
+}
+
+const isParcelLockerFull = (req, res) => {
+    parcelLockerService.isParcelLockerFull();
+}
+
+const areBoxesFull = () => {
+    parcelLockerService.areBoxesFull();
+}
+
+const getSaturationDatas = () => {
+
 }
 
 module.exports = {
-    getParcelLocker,
+    getParcelLockersForChoice,
+    isParcelLockerFull,
+    areBoxesFull,
+    getSaturationDatas
 };

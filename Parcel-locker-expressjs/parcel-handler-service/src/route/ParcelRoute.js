@@ -3,7 +3,7 @@ const parcelController = require('../contoller/ParcelController');
 
 const router = Router();
 
-router.get("/getparcels", parcelController.getParcels);
-router.get("/getparcel", parcelController.getParcel);
+router.post("/sendparcelwithoutcode/:senderParcelLockerId", parcelController.sendParcelWithoutCode);
+
 
 module.exports = router;

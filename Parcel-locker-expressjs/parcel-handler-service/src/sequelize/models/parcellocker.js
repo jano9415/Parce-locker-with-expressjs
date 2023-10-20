@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       })
 
       //Kapcsolat a Parcel locker és az Address között
-      ParcelLocker.hasOne(models.Address, {
+      ParcelLocker.belongsTo(models.Address, {
         foreignKey: "addressId",
         as: "location"
       })

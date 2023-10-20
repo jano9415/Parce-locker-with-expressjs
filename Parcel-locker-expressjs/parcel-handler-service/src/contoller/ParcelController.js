@@ -76,11 +76,10 @@ const getParcels = async (req, res) => {
 
 }
 
-const getParcel = (req, res) => {
-    res.send("ez a csomag");
+const sendParcelWithoutCode = (req, res) => {
+
 }
 
 module.exports = {
-    getParcels,
-    getParcel
+    sendParcelWithoutCode,
 };

@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       })
 
       //Kapcsolat a Store és az Address között
-      Store.hasOne(models.Address, {
+      Store.belongsTo(models.Address, {
         foreignKey: "addressId",
         as: "location"
       })

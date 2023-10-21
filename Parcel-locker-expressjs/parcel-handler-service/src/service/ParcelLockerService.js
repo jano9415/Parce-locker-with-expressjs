@@ -1,8 +1,12 @@
 const { ParcelLocker, sequelize } = require("../sequelize/models");
+const initDb = require("../config/InitDatabase");
 
 //Csomag automaták lekérése. Ezekből lehet kiválasztani a feladási vagy érkezési automatát
 //Nem szükséges jwt token
 const getParcelLockersForChoice = () => {
+
+    initDb.initBoxes();
+    return "Ez a csomag automata";
 
 }
 

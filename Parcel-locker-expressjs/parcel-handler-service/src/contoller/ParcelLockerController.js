@@ -2,7 +2,8 @@ const parcelLockerService = require("../service/ParcelLockerService");
 
 
 const getParcelLockersForChoice = (req, res) => {
-    parcelLockerService.getParcelLockersForChoice();
+    res.send(parcelLockerService.getParcelLockersForChoice());
+    
 }
 
 const isParcelLockerFull = (req, res) => {

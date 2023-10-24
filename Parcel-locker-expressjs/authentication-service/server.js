@@ -11,16 +11,7 @@ app.use(express.json());
 
 app.use("/auth", authRoute);
 
-const user1 = {
-    emailAddress: "valami@gmail.com"
-}
 
-try{
-    User.create(user1);
-}
-catch (error){
-    console.log(error.message);
-}
 
 app.listen(port, () => console.log('app listening on port ' + port));
 

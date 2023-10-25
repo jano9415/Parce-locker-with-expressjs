@@ -14,6 +14,16 @@ const userScheme = mongoose.Schema(
             required: true
         },
 
+        enable: {
+            type: Boolean,
+            required: true,
+            default: false
+        },
+
+        activationCode: {
+            type: String
+        },
+
         roles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }]
     }
 );

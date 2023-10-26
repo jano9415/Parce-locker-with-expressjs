@@ -3,6 +3,7 @@ const Role = require("../model/Role");
 const initDb = require("../config/InitDatabase");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
+const jwtUtil = require("../util/JwtUtil");
 
 //SHA-256 kódolás
 const sha256Password = (password) => {
@@ -91,9 +92,46 @@ Role.find()
 }
 
 //Bejelentkezés
-//Jwt token generálása
-//Nem szükséges jwt token
+//Sikeres bejelentkezés esetén visszatérés egy LoginResponse objektummal
+//A LoginResponse objektum tartalmazza: - user id, token típusa, token, email cím, szerepkörök
 const login = (req, res) => {
+
+    const requestBody = req.body;
+    const stringResponse = {};
+    const loginResponse = {};
+
+    User.findOne({ emailAddress: requestBody.emailAddress })
+        .then(user => {
+
+            if (user) {
+
+                const sha256Pass = sha256Password(requestBody.password);
+                if (user.password !== sha256Pass) {
+                    stringResponse.message = "passwordError";
+                    res.status(200).json(stringResponse);
+                }
+
+                if (user.enable === false) {
+                    stringResponse.message = "notActivated";
+                    res.status(200).json(stringResponse);
+                }
+
+                const jwtToken = jwtUtil.generateToken(user.emailAddress, user.roles);
+                loginResponse.id = user.id;
+                loginResponse.emailAddress = user.emailAddress;
+                loginResponse.token = jwtToken;
+                loginResponse.roles = user.roles;
+                res.status(200).json(loginResponse);
+
+            }
+            else {
+                stringResponse.message = "emailError";
+                res.status(200).json(stringResponse);
+            }
+        })
+        .catch(error => {
+
+        })
 
 }
 
@@ -103,14 +141,106 @@ const login = (req, res) => {
 const signUp = (req, res) => {
 
     const requestBody = req.body;
+    const stringResponse = {};
 
-    //A megadott email cím már létezik
+
     User.findOne({ emailAddress: requestBody.emailAddress })
         .then(user => {
+            //A megadott email cím már létezik
             if (user) {
-                const stringResponse = {
-                    message: "emailExists"
+
+                stringResponse.message = "emailExists";
+                res.status(200).json(stringResponse);
+            }
+            //Új felhasználó létrehozása
+            else {
+
+                Role.findOne({ roleName: "user" })
+                    .then(role => {
+                        if (role) {
+                            const user = new User({
+                                emailAddress: requestBody.emailAddress,
+                                password: sha256Password(requestBody.password),
+                                activationCode: generateRandomString(8),
+                                roles: [role]
+                            });
+                            user.save();
+
+                            stringResponse.message = "successRegistration";
+
+                            //Új ParcelHandlerServiceUserDTO objektum létrehozása
+                            //Ezt az objektumot küldöm a parcel handler service-nek
+                            /*--------------------*/
+
+                            //SignUpActivationDTO objektum létrehozása majd küldése az apache kafka topicnak
+                            //A topic neve: "signup_email_topic"
+                            //Regisztráció megerősítéséhez szükséges kód küldése email-ben
+                            /*--------------------*/
+
+                            //ParcelHandlerServiceUserDTO objektum küldése a parcel-handler service-nek
+                            //Ez a user objektum máshogy néz ki, mint az authentication-service user objektuma
+                            //Szinkron kommunikáció. "/parcelhandler/user/createuser" végpont meghívása a parcel handler service-ben.
+                            /*--------------------*/
+
+
+                            res.status(200).json(stringResponse);
+
+                        }
+                    })
+                    .catch(error => {
+
+                    });
+
+            }
+        })
+        .catch(error => {
+
+        })
+}
+
+//Futár bejelentkezés rfid kártyával az automatánál
+//Csak jelszó érkezik a kérésbe
+//Futár keresése jelszó szerint
+//Sikeres bejelentkezés esetén visszatérés egy loginResponse objektummal
+//Ez az objektum tartalmazza: jwt token (ami tartalmazza a futár egyedi azonosítóját), id,
+// egyedi azonosító újra (ez nem biztos, hogy kelleni fog) és a szerepkörök
+const courierLogin = (req, res) => {
+
+    const requestBody = req.body;
+    const parcelLockerId = req.params.parcelLockerId;
+    const stringResponse = {};
+    const loginResponse = {};
+
+    const sha256Pass = sha256Password(requestBody.password);
+
+    User.findOne({ password: requestBody.sha256Pass })
+        .then(user => {
+
+            if (user) {
+
+                //Kérés küldése a parcel-handler-service-nek
+                //Ha a kérésben érkező automata store id és a futár store id nem egyezik meg,
+                //akkor a futár nem jogosult bejelentekzni ahhoz az automatához
+                const responseFromParcelHandlerService = {};
+                /*--------------------*/
+
+                //Ha nem jogosult a futár a bejelentkezésre
+                if (responseFromParcelHandlerService.message === "notEligible") {
+                    stringResponse.message = "notEligible";
+                    res.status(200).json(stringResponse);
                 }
+
+                const jwtToken = jwtUtil.generateToken(user.emailAddress, user.roles);
+                loginResponse.id = user.id;
+                loginResponse.emailAddress = user.emailAddress;
+                loginResponse.token = jwtToken;
+                loginResponse.roles = user.roles;
+                res.status(200).json(loginResponse);
+
+
+            }
+            else {
+                stringResponse.message = "notFound";
                 res.status(200).json(stringResponse);
             }
         })
@@ -118,37 +248,106 @@ const signUp = (req, res) => {
 
         })
 
-
-
-    //Új felhasználó létrehozása
-    const user = new User({
-        emailAddress: requestBody.emailAddress,
-        password: sha256Password(requestBody.password),
-        activationCode: generateRandomString(8)
-    });
-
-
-
-
 }
 
-//Futár bejelentkezése az automatánál
-//Nem szükséges jwt token
-const courierLogin = (req, res) => {
-
-}
 
 //Regisztráció aktiválása
-//Nem szükséges jwt token
+//Keresés aktivációs kód szerint
+//Aktivációs kód null-ra állítása
+//Enable mező true-ra állítása
 const signUpActivation = (req, res) => {
+
+    const signUpActivationCode = req.params.signUpActivationCode;
+    const stringResponse = {};
+
+    User.findOne({ activationCode: signUpActivationCode })
+        .then(user => {
+
+            if (user) {
+
+                user.activationCode = null;
+                user.enable = true;
+                user.save();
+
+                stringResponse.message = "successfulActivation";
+                res.status(200).json(stringResponse);
+            }
+            else {
+                stringResponse.message = "unSuccessfulActivation";
+                res.status(200).json(stringResponse);
+            }
+
+        })
+        .catch(error => {
+
+        })
+
 
 }
 
+
 //Új futár létrehozása
-//Jwt token szükséges
-//Admin szerepkör szükséges
+//Futár objektum küldése a parcel handler service-nek
 const createCourier = (req, res) => {
-    res.send(userService.createCourier());
+
+    const requestBody = req.body;
+    const stringResponse = {};
+
+    User.findOne({ emailAddress: req.emailAddress })
+        .then(user => {
+
+            //A megadott futár azonosító már létezik
+            if (user) {
+                stringResponse.message = "uidExists";
+                res.status(200).json(stringResponse);
+            }
+            else {
+                //Futár esetén a jelszót is ellenőrizni kell. Kettő ugyan olyan nem lehet, mert a jelszó egyben a bejelentkezési
+                //RFID azonosító is
+                const sha256Pass = sha256Password(requestBody.password);
+                User.findOne({ password: sha256Pass })
+                    .then(user => {
+                        if (user) {
+                            stringResponse.message = "passwordExists";
+                            res.status(200).json(stringResponse);
+                        }
+                        else {
+                            //Új futár létrehozása
+                            Role.findOne({ roleName: "courier" })
+                                .then(role => {
+                                    const newCourier = ({
+                                        emailAddress: requestBody.emailAddress,
+                                        password: requestBody.password,
+                                        enable: true,
+                                        roles: [role]
+                                    });
+
+                                    //CourierDTO objektum létrehozása. Ezt az objektumot küldöm a parcel-handler service-nek.
+                                    //Ez az objektum már nem tartalmaz jelszót, viszont tartalmaz vezeték és kereszt nevet és store id-t
+                                    /*----------------*/
+
+                                    //Futár küldése a parcel handler service-nek
+                                    /*---------------*/
+
+                                    stringResponse.message("successCourierCreation");
+                                    res.status(200).json(stringResponse);
+                                })
+                                .catch(error => {
+
+                                })
+
+                        }
+
+                    })
+                    .catch(error => {
+
+                    })
+
+            }
+        })
+        .catch(error => {
+
+        })
 }
 
 //Új admin létrehozása

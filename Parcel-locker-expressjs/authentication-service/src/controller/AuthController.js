@@ -38,12 +38,17 @@ const createCourier = (req, res) => {
     userService.createCourier(req, res);
 }
 
+//Új admin létrehozása
+//Jwt token szükséges
+//Admin szerepkör szükséges
 const createAdmin = (req, res) => {
-    res.send(userService.createAdmin());
+    userService.createAdmin(req, res);
 }
 
+//Futár valamely adatának módosítása
+//A kérés a parcel handler service-ből jön
 const updateCourier = (req, res) => {
-    res.send(userService.updateCourier());
+    userService.updateCourier();
 }
 
 

@@ -120,7 +120,7 @@ const login = (req, res) => {
                 loginResponse.id = user.id;
                 loginResponse.emailAddress = user.emailAddress;
                 loginResponse.token = jwtToken;
-                loginResponse.roles = user.roles;
+                loginResponse.roles = user.roles.map(role => role.roleName);
                 res.status(200).json(loginResponse);
 
             }
@@ -155,7 +155,7 @@ const signUp = (req, res) => {
             //Új felhasználó létrehozása
             else {
 
-                Role.findOne({ roleName: "user" })
+                Role.findOne({ roleName: "admin" })
                     .then(role => {
                         if (role) {
                             const user = new User({
@@ -213,7 +213,7 @@ const courierLogin = (req, res) => {
 
     const sha256Pass = sha256Password(requestBody.password);
 
-    User.findOne({ password: requestBody.sha256Pass })
+    User.findOne({ password: sha256Pass })
         .then(user => {
 
             if (user) {
@@ -234,7 +234,7 @@ const courierLogin = (req, res) => {
                 loginResponse.id = user.id;
                 loginResponse.emailAddress = user.emailAddress;
                 loginResponse.token = jwtToken;
-                loginResponse.roles = user.roles;
+                loginResponse.roles = user.roles.map(role => role.roleName);
                 res.status(200).json(loginResponse);
 
 
@@ -315,12 +315,13 @@ const createCourier = (req, res) => {
                             //Új futár létrehozása
                             Role.findOne({ roleName: "courier" })
                                 .then(role => {
-                                    const newCourier = ({
+                                    const newCourier = new User({
                                         emailAddress: requestBody.emailAddress,
                                         password: requestBody.password,
                                         enable: true,
                                         roles: [role]
                                     });
+                                    newCourier.save();
 
                                     //CourierDTO objektum létrehozása. Ezt az objektumot küldöm a parcel-handler service-nek.
                                     //Ez az objektum már nem tartalmaz jelszót, viszont tartalmaz vezeték és kereszt nevet és store id-t
@@ -351,16 +352,55 @@ const createCourier = (req, res) => {
 }
 
 //Új admin létrehozása
-//Jwt token szükséges
-//Admin szerepkör szükséges
 const createAdmin = (req, res) => {
-    res.send(userService.createAdmin());
+
+    const requestBody = req.body;
+    const stringResponse = {};
+
+    User.findOne({ emailAddress: requestBody.emailAddress })
+        .then(user => {
+            //A megadott email cím már létezik
+            if (user) {
+                stringResponse.message = "emailExists";
+                res.status(200).json(stringResponse);
+            }
+            //Új admin létrehozása
+            else {
+                const sha256Pass = sha256Password(requestBody.password);
+                Role.findOne({ roleName: "admin" })
+                    .then(role => {
+                        const newAdmin = new User({
+                            enable: true,
+                            emailAddress: requestBody.emailAddress,
+                            password: sha256Pass,
+                            roles: [role]
+                        });
+                        newAdmin.save();
+
+                        stringResponse.message = "successAdminCreation";
+                        res.status(200).json(stringResponse);
+                    })
+                    .catch(error => {
+
+                    })
+
+
+            }
+
+        })
+        .catch(error => {
+
+        })
 }
 
 //Futár valamely adatának módosítása
 //A kérés a parcel handler service-ből jön
 const updateCourier = (req, res) => {
-    res.send(userService.updateCourier());
+    
+    const requestBody = req.body;
+    const stringResponse = {};
+
+    //User keresése a régi email cím (egyedi futár azonosító) alapján
 }
 
 module.exports = {

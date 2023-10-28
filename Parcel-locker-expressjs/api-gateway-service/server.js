@@ -63,6 +63,7 @@ app.use((req, res, next) => {
     next();
   }
   //Jwt token szükséges
+  //
   else {
     //Jwt token kiolvasás a header részből
     const jwtToken = req.headers['authorization'];

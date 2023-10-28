@@ -48,7 +48,7 @@ const createAdmin = (req, res) => {
 //Futár valamely adatának módosítása
 //A kérés a parcel handler service-ből jön
 const updateCourier = (req, res) => {
-    userService.updateCourier();
+    userService.updateCourier(req, res);
 }
 
 

@@ -4,6 +4,7 @@ const initDb = require("../config/InitDatabase");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const jwtUtil = require("../util/JwtUtil");
+const { use } = require("../route/AuthRoute");
 
 //SHA-256 kódolás
 const sha256Password = (password) => {
@@ -58,6 +59,7 @@ Role.find()
     */
 
 
+    /*
     Role.findOne({ roleName: "user" })
         .then(role => {
             if (role) {
@@ -77,6 +79,7 @@ Role.find()
         .catch(error => {
             console.error('Hiba történt a lekérdezés során:', error);
         });
+        */
 
     /*
     const user1 = new User({
@@ -116,7 +119,8 @@ const login = (req, res) => {
                     res.status(200).json(stringResponse);
                 }
 
-                const jwtToken = jwtUtil.generateToken(user.emailAddress, user.roles);
+                const stringRoles = user.roles.map(role => role.roleName);
+                const jwtToken = jwtUtil.generateToken(user.emailAddress, stringRoles);
                 loginResponse.id = user.id;
                 loginResponse.emailAddress = user.emailAddress;
                 loginResponse.token = jwtToken;
@@ -155,7 +159,7 @@ const signUp = (req, res) => {
             //Új felhasználó létrehozása
             else {
 
-                Role.findOne({ roleName: "admin" })
+                Role.findOne({ roleName: "user" })
                     .then(role => {
                         if (role) {
                             const user = new User({
@@ -230,7 +234,8 @@ const courierLogin = (req, res) => {
                     res.status(200).json(stringResponse);
                 }
 
-                const jwtToken = jwtUtil.generateToken(user.emailAddress, user.roles);
+                const stringRoles = user.roles.map(role => role.roleName);
+                const jwtToken = jwtUtil.generateToken(user.emailAddress, stringRoles);
                 loginResponse.id = user.id;
                 loginResponse.emailAddress = user.emailAddress;
                 loginResponse.token = jwtToken;
@@ -395,12 +400,77 @@ const createAdmin = (req, res) => {
 
 //Futár valamely adatának módosítása
 //A kérés a parcel handler service-ből jön
+//A parcel handler service-ben tranzakció kezelés van. Ha itt nem sikerül módosítani az adatokat az adatbázisban,
+//akkor a parcel handler adatbázisból is visszavonjuk a módosításokat
 const updateCourier = (req, res) => {
-    
+
     const requestBody = req.body;
     const stringResponse = {};
 
     //User keresése a régi email cím (egyedi futár azonosító) alapján
+    User.findOne({ emailAddress: requestBody.previousUniqueCourierId })
+        .then(userForModify => {
+            if (userForModify) {
+                //A megadott egyedi futár azonosító már létezik az adatbázisban, vizsgálat
+                //Azt is meg kell nézni, hogy a régi és az új futár azonosító megegyezik-e
+                //Mert ha megegyezik, akkor mindig már létezik az adatbázisban hibát fog visszaküldeni
+                User.findOne({ emailAddress: requestBody.newUniqueCourierId })
+                    .then(user => {
+                        if (user && requestBody.previousUniqueCourierId !== requestBody.newUniqueCourierId) {
+                            stringResponse.message = "uidExists";
+                            res.status(200).json(stringResponse);
+                        }
+                        else {
+                            //Előfordulhat, hogy a jelszó (rfid azonosító) üres, mert azt nem akarja az admin módosítani
+                            //A régi pedig nem fog érkezni a kérésben, mert azt nem jelenítem meg a frontenden
+                            //Nem is tudnám, az sha256 kódolás miatt
+                            if (requestBody.password !== null) {
+                                const sha256Pass = sha256Password(requestBody.password);
+
+                                //Futár esetén a jelszót is ellenőrizni kell. Kettő ugyan olyan nem lehet, mert a jelszó egyben a bejelentkezési
+                                //RFID azonosító is
+                                User.findOne({ password: sha256Pass })
+                                    .then(user => {
+                                        if (user) {
+                                            stringResponse.message = "passwordExists";
+                                            res.status(200).json(stringResponse);
+                                        }
+                                        else {
+                                            //Futár új jelszava (rfid azonosítója)
+                                            userForModify.password = sha256Pass;
+                                            //Új email cím (egyedi futár azonosító)
+                                            userForModify.emailAddress = requestBody.newUniqueCourierId;
+                                            userForModify.save();
+                                            stringResponse.message = "successfulUpdating";
+                                            res.status(200).json(stringResponse);
+
+                                        }
+
+                                    })
+                                    .catch(error => {
+
+                                    })
+                            }
+
+                        }
+
+                    })
+                    .catch(error => {
+
+                    })
+
+            }
+            //Nem valószínű, mert a frontenden megjelenítem a futárokat és abból választ ki az admin
+            else {
+                stringResponse.message = "notFound";
+                res.status(200).json(stringResponse);
+
+            }
+
+        })
+        .catch(error => {
+
+        })
 }
 
 module.exports = {

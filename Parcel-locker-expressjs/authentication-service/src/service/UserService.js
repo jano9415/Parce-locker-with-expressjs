@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const crypto = require("crypto");
 const jwtUtil = require("../util/JwtUtil");
 const { use } = require("../route/AuthRoute");
+const producer = require("../kafka/Producer");
 
 //SHA-256 kódolás
 const sha256Password = (password) => {
@@ -147,7 +148,6 @@ const signUp = (req, res) => {
     const requestBody = req.body;
     const stringResponse = {};
 
-
     User.findOne({ emailAddress: requestBody.emailAddress })
         .then(user => {
             //A megadott email cím már létezik
@@ -180,6 +180,20 @@ const signUp = (req, res) => {
                             //A topic neve: "signup_email_topic"
                             //Regisztráció megerősítéséhez szükséges kód küldése email-ben
                             /*--------------------*/
+                            const signUpActivation = {
+                                lastName: requestBody.lastName,
+                                firstName: requestBody.firstName,
+                                activationCode: user.activationCode,
+                                emailAddress: requestBody.emailAddress
+                            };
+
+                            producer.sendSignUpActivationCode(signUpActivation)
+                                .then(() => {
+                                    console.log("üzenet elküldve");
+                                })
+                                .catch(error => {
+                                    console.log("hiba");
+                                })
 
                             //ParcelHandlerServiceUserDTO objektum küldése a parcel-handler service-nek
                             //Ez a user objektum máshogy néz ki, mint az authentication-service user objektuma
@@ -264,6 +278,7 @@ const signUpActivation = (req, res) => {
 
     const signUpActivationCode = req.params.signUpActivationCode;
     const stringResponse = {};
+
 
     User.findOne({ activationCode: signUpActivationCode })
         .then(user => {

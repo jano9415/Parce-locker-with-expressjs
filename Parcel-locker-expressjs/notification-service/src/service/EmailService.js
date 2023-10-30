@@ -4,8 +4,8 @@ const nodeMailer = require("nodemailer");
 const transporter = nodeMailer.createTransport({
     service: 'Gmail', // E-mail szolgáltató neve
     auth: {
-        user: 'packetswift@gmail.com', // Küldő email cím
-        pass: 'trimrffthfeimykl' //Alkalmazásjelszó
+        user: '', // Küldő email cím
+        pass: '' //Alkalmazásjelszó
     }
 });
 

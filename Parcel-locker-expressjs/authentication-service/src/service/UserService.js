@@ -4,8 +4,9 @@ const initDb = require("../config/InitDatabase");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const jwtUtil = require("../util/JwtUtil");
-const { use } = require("../route/AuthRoute");
+const { use, response } = require("../route/AuthRoute");
 const producer = require("../kafka/Producer");
+const axios = require("axios");
 
 //SHA-256 kódolás
 const sha256Password = (password) => {
@@ -172,14 +173,9 @@ const signUp = (req, res) => {
 
                             stringResponse.message = "successRegistration";
 
-                            //Új ParcelHandlerServiceUserDTO objektum létrehozása
-                            //Ezt az objektumot küldöm a parcel handler service-nek
-                            /*--------------------*/
-
                             //SignUpActivationDTO objektum létrehozása majd küldése az apache kafka topicnak
                             //A topic neve: "signup_email_topic"
                             //Regisztráció megerősítéséhez szükséges kód küldése email-ben
-                            /*--------------------*/
                             const signUpActivation = {
                                 lastName: requestBody.lastName,
                                 firstName: requestBody.firstName,
@@ -198,7 +194,19 @@ const signUp = (req, res) => {
                             //ParcelHandlerServiceUserDTO objektum küldése a parcel-handler service-nek
                             //Ez a user objektum máshogy néz ki, mint az authentication-service user objektuma
                             //Szinkron kommunikáció. "/parcelhandler/user/createuser" végpont meghívása a parcel handler service-ben.
-                            /*--------------------*/
+                            const userForParcelHandlerService = {
+                                emailAddress: requestBody.emailAddress,
+                                lastName: requestBody.lastName,
+                                firstName: requestBody.firstName,
+                                phoneNumber: requestBody.phoneNumber
+                            };
+                            axios.post("http://localhost:8081/parcelhandler/user/createuser", userForParcelHandlerService)
+                                .then(response => {
+
+                                })
+                                .catch(error => {
+
+                                })
 
 
                             res.status(200).json(stringResponse);
@@ -239,22 +247,29 @@ const courierLogin = (req, res) => {
                 //Kérés küldése a parcel-handler-service-nek
                 //Ha a kérésben érkező automata store id és a futár store id nem egyezik meg,
                 //akkor a futár nem jogosult bejelentekzni ahhoz az automatához
-                const responseFromParcelHandlerService = {};
-                /*--------------------*/
 
-                //Ha nem jogosult a futár a bejelentkezésre
-                if (responseFromParcelHandlerService.message === "notEligible") {
-                    stringResponse.message = "notEligible";
-                    res.status(200).json(stringResponse);
-                }
+                axios.get("http://localhost:8081/parcelhandler/courier/iscouriereligible/" + parcelLockerId + "/" + user.emailAddress)
+                    .then(response => {
+                        //Ha nem jogosult a futár a bejelentkezésre
+                        if (response.body.message === "notEligible") {
+                            stringResponse.message = "notEligible";
+                            res.status(200).json(stringResponse);
+                        }
 
-                const stringRoles = user.roles.map(role => role.roleName);
-                const jwtToken = jwtUtil.generateToken(user.emailAddress, stringRoles);
-                loginResponse.id = user.id;
-                loginResponse.emailAddress = user.emailAddress;
-                loginResponse.token = jwtToken;
-                loginResponse.roles = user.roles.map(role => role.roleName);
-                res.status(200).json(loginResponse);
+                        const stringRoles = user.roles.map(role => role.roleName);
+                        const jwtToken = jwtUtil.generateToken(user.emailAddress, stringRoles);
+                        loginResponse.id = user.id;
+                        loginResponse.emailAddress = user.emailAddress;
+                        loginResponse.token = jwtToken;
+                        loginResponse.roles = user.roles.map(role => role.roleName);
+                        res.status(200).json(loginResponse);
+
+                    })
+                    .catch(error => {
+
+                    })
+
+
 
 
             }

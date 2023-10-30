@@ -78,7 +78,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    /*
     size: {
       type: DataTypes.STRING,
       allowNull: false
@@ -180,7 +179,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     pickingUpTimeFromSecondStoreByCourier: {
       type: DataTypes.TIME,
-    },*/
+    },
 
 
 

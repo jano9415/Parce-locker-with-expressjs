@@ -5,7 +5,7 @@ const initDb = require("../config/InitDatabase");
 //Nem szükséges jwt token
 const getParcelLockersForChoice = () => {
 
-    initDb.initBoxes();
+    //initDb.initBoxes();
     return "Ez a csomag automata";
 
 }

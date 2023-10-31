@@ -25,10 +25,18 @@ module.exports = (sequelize, DataTypes) => {
       */
       
       //Kapcsolat a Parcel és a Courier között
+      //One-to-many kapcsolat
       Courier.hasMany(models.Parcel, {
         foreignKey: "courierId",
         as: "parcels"
       });
+
+      //Kapcsolat a Courier és a Store között
+      //Many-to-one kapcsolat
+      Courier.belongsTo(models.Store, {
+        foreignKey: "storeId",
+        as: "area"
+      })
       
     }
   }
@@ -42,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
-    },/*
+    },
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -51,7 +59,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     }
-    */
   }, {
     sequelize,
     modelName: 'Courier',

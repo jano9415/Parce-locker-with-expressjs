@@ -328,7 +328,7 @@ const createCourier = (req, res) => {
     const requestBody = req.body;
     const stringResponse = {};
 
-    User.findOne({ emailAddress: req.emailAddress })
+    User.findOne({ emailAddress: requestBody.uniqueCourierId })
         .then(user => {
 
             //A megadott futár azonosító már létezik
@@ -351,7 +351,7 @@ const createCourier = (req, res) => {
                             Role.findOne({ roleName: "courier" })
                                 .then(role => {
                                     const newCourier = new User({
-                                        emailAddress: requestBody.emailAddress,
+                                        emailAddress: requestBody.uniqueCourierId,
                                         password: requestBody.password,
                                         enable: true,
                                         roles: [role]
@@ -360,10 +360,22 @@ const createCourier = (req, res) => {
 
                                     //CourierDTO objektum létrehozása. Ezt az objektumot küldöm a parcel-handler service-nek.
                                     //Ez az objektum már nem tartalmaz jelszót, viszont tartalmaz vezeték és kereszt nevet és store id-t
-                                    /*----------------*/
+                                    const courierForParcelHandlerService = {
+                                        uniqueCourierId: requestBody.uniqueCourierId,
+                                        firstName: requestBody.firstName,
+                                        lastName: requestBody.lastName,
+                                        storeId: requestBody.storeId
 
+                                    };
                                     //Futár küldése a parcel handler service-nek
-                                    /*---------------*/
+                                    axios.post("http://localhost:8081/parcelhandler/courier/createcourier",
+                                        courierForParcelHandlerService
+                                    ).then(response => {
+
+                                    }).catch(error => {
+
+                                    })
+
 
                                     stringResponse.message("successCourierCreation");
                                     res.status(200).json(stringResponse);

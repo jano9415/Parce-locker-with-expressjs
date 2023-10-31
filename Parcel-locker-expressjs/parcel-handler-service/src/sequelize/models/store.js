@@ -13,18 +13,21 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
 
       //Kapcsolat a Courier és a Store között
+      //One-to-many kapcsolat
       Store.hasMany(models.Parcel, {
         foreignKey: "storeId",
-        as: "parcels"
+        as: "couriers"
       })
 
       //Kapcsolat a Parcel locker és a Store között
+      //One-to-many kapcsolat
       Store.hasMany(models.ParcelLocker, {
         foreignKey: "storeId",
         as: "parcelLockers"
       })
 
       //Kapcsolat a Store és az Address között
+      //One-to-one kapcsolat
       Store.belongsTo(models.Address, {
         foreignKey: "addressId",
         as: "location"

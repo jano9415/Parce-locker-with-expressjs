@@ -20,6 +20,8 @@ app.use("/parcelhandler/courier", courierRoute)
 //sequelize.sync();
 //initDb.initAddress();
 //initDb.initBoxes();
+//initDb.initStores();
+//initDb.initParcelLockers();
 
 
 

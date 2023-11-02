@@ -1,4 +1,4 @@
-const { Address, Box } = require("../sequelize/models");
+const { Address, Box, ParcelLocker, Store } = require("../sequelize/models");
 
 
 
@@ -520,9 +520,482 @@ const initBoxes = () => {
     Box.create(box30);
 }
 
+//Raktárak létrehozása
+const initStores = () => {
+
+    for (let i = 1; i <= 5; i++) {
+
+        Address.findOne({ where: { id: i } })
+            .then(address => {
+                Store.create({
+
+                }).then(store => {
+                    store.setLocation(address);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+    }
+
+
+}
+
+//Csomag automaták létrehozása
+const initParcelLockers = () => {
+
+    //Veszprém megyei automaták
+    Address.findOne({ where: { id: 6 } })
+        .then(address => {
+            Store.findOne({where: {id: 1}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+        
+        Address.findOne({ where: { id: 7 } })
+        .then(address => {
+            Store.findOne({where: {id: 1}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 8 } })
+        .then(address => {
+            Store.findOne({where: {id: 1}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 9 } })
+        .then(address => {
+            Store.findOne({where: {id: 1}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        //Fejér megyei automaták
+        Address.findOne({ where: { id: 10 } })
+        .then(address => {
+            Store.findOne({where: {id: 2}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 11 } })
+        .then(address => {
+            Store.findOne({where: {id: 2}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 12 } })
+        .then(address => {
+            Store.findOne({where: {id: 2}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 13 } })
+        .then(address => {
+            Store.findOne({where: {id: 2}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        //Zala megyei automaták
+        Address.findOne({ where: { id: 14 } })
+        .then(address => {
+            Store.findOne({where: {id: 3}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 15 } })
+        .then(address => {
+            Store.findOne({where: {id: 3}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 16 } })
+        .then(address => {
+            Store.findOne({where: {id: 3}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 17 } })
+        .then(address => {
+            Store.findOne({where: {id: 3}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+        //Somoly megyei automaták
+        Address.findOne({ where: { id: 18 } })
+        .then(address => {
+            Store.findOne({where: {id: 4}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 19 } })
+        .then(address => {
+            Store.findOne({where: {id: 4}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 20 } })
+        .then(address => {
+            Store.findOne({where: {id: 4}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 21 } })
+        .then(address => {
+            Store.findOne({where: {id: 4}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+        //Vas megyei automaták
+        Address.findOne({ where: { id: 22 } })
+        .then(address => {
+            Store.findOne({where: {id: 5}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 23 } })
+        .then(address => {
+            Store.findOne({where: {id: 5}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 24 } })
+        .then(address => {
+            Store.findOne({where: {id: 5}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+        Address.findOne({ where: { id: 25 } })
+        .then(address => {
+            Store.findOne({where: {id: 5}})
+            .then(store => {
+                ParcelLocker.create({
+                    amountOfBoxes: 30,
+                    amountOfSmallBoxes: 10,
+                    amountOfMediumBoxes: 10,
+                    amountOfLargeBoxes: 10,
+                }).then(parcelLocker => {
+                    parcelLocker.setLocation(address);
+                    parcelLocker.setStore(store);
+                }).catch(error => {
+
+                })
+            }).catch(error => {
+
+            })
+        }).catch(error => {
+
+        })
+
+
+}
+
 module.exports = {
     initAddress,
-    initBoxes
+    initBoxes,
+    initStores,
+    initParcelLockers
 };
 
 

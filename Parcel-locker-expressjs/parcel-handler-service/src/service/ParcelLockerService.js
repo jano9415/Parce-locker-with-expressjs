@@ -42,7 +42,7 @@ const isParcelLockerFull = (req, res) => {
             as: "parcels"
         }
     }).then(parcelLocker => {
-        if(parcelLocker.parcels.length == parcelLocker.amountOfBoxes){
+        if (parcelLocker.parcels.length == parcelLocker.amountOfBoxes) {
             stringResponse.message = "full";
             res.status(200).json(stringResponse);
         }
@@ -66,12 +66,25 @@ const getSaturationDatas = () => {
 
 //Rekeszek tele vannak? Kicsi, közepes, nagy rekeszek ellenőrzése.
 const checkBoxes = (size, senderParcelLockerId) => {
+    ParcelLocker.findOne({
+        where: { id: senderParcelLockerId },
+        include: {
+            model: Parcel,
+            as: "parcels"
+        }
+    }).then(parcelLocker => {
+        let counter = 0;
+        for(let i = 0; i < parcelLocker.parcels.length; i++){
+            //Folyt köv
+        }
+    }).catch(error => {
 
+    })
 }
 
 //Teli rekeszek számának ellenőrzése. Kicsi, közepes vagy nagy rekeszek
 const fullBoxesNumber = (parcelLockerId) => {
-    
+
 }
 
 module.exports = {

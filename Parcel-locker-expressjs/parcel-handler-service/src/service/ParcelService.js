@@ -21,6 +21,25 @@ const sendParcelWithoutCode = (req, res) => {
     const senderParcelLockerId = req.params.senderParcelLockerId;
     const response = {};
 
+    //Feladási automata
+    ParcelLocker.findOne({
+        where: { id: senderParcelLockerId },
+    }).then(senderParcelLocker => {
+        //Érkezési automata
+        ParcelLocker.findOne({
+            where: { id: requestBody.selectedParcelLockerId },
+        }).then(receiverParcelLocker => {
+
+        }).catch(error => {
+
+        })
+
+    }).catch(error => {
+
+    })
+
+
+
     //Csomag létrehozása
     Parcel.create({
         //Csomag változóinak beállítása

@@ -36,10 +36,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "courier"
       });
 
-      //Kapcsolat a Courier és a Store között
+      //Kapcsolat a Parcel és a Store között
+      //Many-to-one kapcsolat
       Parcel.belongsTo(models.Store, {
         foreignKey: "storeId",
-        as: "area"
+        as: "store"
       })
 
       //Kapcsolat a Parcel és a User között
@@ -133,7 +134,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     isPaid: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      allowNull: false,
+      defaultValue: false,
     },
     pickingUpCode: {
       type: DataTypes.STRING,

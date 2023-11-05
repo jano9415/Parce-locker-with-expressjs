@@ -12,9 +12,16 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
 
-      //Kapcsolat a Courier és a Store között
+      //Kapcsolat a Parcel és a Store között
       //One-to-many kapcsolat
       Store.hasMany(models.Parcel, {
+        foreignKey: "storeId",
+        as: "parcels"
+      })
+
+      //Kapcsolat a Courier és a Store között
+      //One-to-many kapcsolat
+      Store.hasMany(models.Courier, {
         foreignKey: "storeId",
         as: "couriers"
       })
@@ -35,11 +42,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Store.init({
-    id:{
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
-    } ,
+    },
   }, {
     sequelize,
     modelName: 'Store',

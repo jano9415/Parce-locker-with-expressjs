@@ -1,6 +1,7 @@
-const { Parcel, ParcelLocker, Box } = require("../sequelize/models");
+const { Parcel, ParcelLocker, Box, Address } = require("../sequelize/models");
 const initDb = require("../config/InitDatabase");
 const { DATEONLY, TIME } = require("sequelize");
+const producer = require("../kafka/Producer");
 
 //Random string generálása
 const generateRandomString = (length) => {
@@ -11,6 +12,20 @@ const generateRandomString = (length) => {
         randomString += characters.charAt(randomIndex);
     }
     return randomString;
+}
+
+//Aktuális dátum
+const currentDate = () => {
+    const date = new Date();
+    const currDate = date.toISOString().slice(0, 10);
+    return currDate;
+}
+
+//Aktuális időpont
+const currentTime = () => {
+    const time = new Date();
+    const currTime = time.toTimeString().slice(0, 8);
+    return currTime;
 }
 
 //Csomag küldése feladási kód nélkül
@@ -24,18 +39,29 @@ const sendParcelWithoutCode = (req, res) => {
     //Feladási automata
     ParcelLocker.findOne({
         where: { id: senderParcelLockerId },
-        include: {
-            model: Parcel,
-            as: "parcels",
-            include: {
-                model: Box,
-                as: "box"
+        include: [
+            {
+                model: Parcel,
+                as: "parcels",
+                include: {
+                    model: Box,
+                    as: "box"
+                }
+            },
+            {
+                model: Address,
+                as: "location"
             }
-        }
+        ]
+
     }).then(senderParcelLocker => {
         //Érkezési automata
         ParcelLocker.findOne({
             where: { id: requestBody.selectedParcelLockerId },
+            include: {
+                model: Address,
+                as: "location",
+            }
         }).then(receiverParcelLocker => {
 
             //A kiválasztott mérethez tartozó rekeszek
@@ -45,23 +71,10 @@ const sendParcelWithoutCode = (req, res) => {
 
 
                 //Feladási automata teli rekeszei
-                const fullBoxes = [];
-                for (let i = 0; i < senderParcelLocker.parcels.length; i++) {
-                    fullBoxes.push(senderParcelLocker.parcels[i].box);
-                }
-
-
+                const fullBoxes = senderParcelLocker.parcels.map(parcel => parcel.box);
                 //Üres rekeszek keresése
-                const emptyBoxes = [];
+                const emptyBoxes = boxes.filter(box => !fullBoxes.some(fullBox => fullBox.boxNumber === box.boxNumber));
 
-                for (let i = 0; i < boxes.length; i++) {
-                    if (!fullBoxes.includes(boxes[i])) {
-                        emptyBoxes.push(boxes[i]);
-
-                    }
-                }
-
-                console.log("Üres rekeszek: " + emptyBoxes.length);
 
                 //Itt lehetne ellenőrizni, hogy az automatában van-e hely
                 //De az már megtörtént küldés előtt
@@ -71,13 +84,33 @@ const sendParcelWithoutCode = (req, res) => {
                     res.status(200).json(response);
                 }*/
 
-                //Email küldése a feladónak
+                //Email küldése a feladónak és a címzettnek
                 //Értesítési objektum küldése a(z) ("parcelSendingNotificationForSender") topicnak
-                //-------------------------------------------------------------------------------------
+                const notification = {
+                    receiverName: requestBody.receiverName,
+                    senderName: requestBody.senderName,
+                    senderEmailAddress: requestBody.senderEmailAddress,
+                    receiverEmailAddress: requestBody.receiverEmailAddress,
+                    price: requestBody.price,
+                    uniqueParcelId: requestBody.uniqueParcelId,
+                    receiverParcelLockerPostCode: receiverParcelLocker.location.postCode,
+                    receiverParcelLockerCity: receiverParcelLocker.location.city,
+                    receiverParcelLockerStreet: receiverParcelLocker.location.street,
 
-                //Email küldése az átvevőnek
-                //Értesítési objektum küldése a(z) ("parcelSendingNotificationForReceiver") topicnak
-                //-------------------------------------------------------------------------------------
+                    senderParcelLockerPostCode: senderParcelLocker.location.postCode,
+                    senderParcelLockerCity: senderParcelLocker.location.city,
+                    senderParcelLockerStreet: senderParcelLocker.location.street,
+                    sendingDate: currentDate(),
+                    sendingTime: currentTime(),
+                };
+
+                producer.parcelSendingNotification(notification)
+                    .then(() => {
+                        console.log("Üzenet elküldve");
+                    }).catch(error => {
+                        console.log(error);
+                    })
+
 
                 //Csomag létrehozása
                 Parcel.create({
@@ -92,8 +125,8 @@ const sendParcelWithoutCode = (req, res) => {
                     shipped: false,
                     pickedUp: false,
 
-                    sendingDate: "2023-11-30",
-                    sendingTime: "14:50:34",
+                    sendingDate: currentDate(),
+                    sendingTime: currentTime(),
                     shippingDate: null,
                     shippingTime: null,
                     pickingUpDate: null,

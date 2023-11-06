@@ -8,7 +8,8 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: 'notification-service' });
 
-async function runConsumer() {
+//Regisztrációs kód küldése email-ben
+async function sendSignUpActivationCode() {
     await consumer.connect();
     await consumer.subscribe({ topic: 'signup_email_topic', fromBeginning: true });
 
@@ -21,8 +22,27 @@ async function runConsumer() {
     });
 }
 
-runConsumer().catch(console.error);
+sendSignUpActivationCode().catch(console.error);
+
+//Email küldése a feladónak és a címzettnek csomagfeladás után
+async function parcelSendingNotification() {
+    await consumer.connect();
+    await consumer.subscribe({ topic: 'parcelSendingNotification', fromBeginning: true });
+
+    await consumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            const stringMessage = message.value.toString();
+            const notification = JSON.parse(stringMessage);
+            emailService.parcelSendingNotificationForSender(notification);
+            emailService.parcelSendingNotificationForReceiver(notification);
+        },
+    });
+}
+
+parcelSendingNotification().catch(console.error);
+
 
 module.exports = {
-    runConsumer
+    sendSignUpActivationCode,
+    parcelSendingNotification,
 };

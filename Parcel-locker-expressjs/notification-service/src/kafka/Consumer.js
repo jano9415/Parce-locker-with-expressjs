@@ -8,41 +8,35 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: 'notification-service' });
 
-//Regisztrációs kód küldése email-ben
-async function sendSignUpActivationCode() {
+const runConsumer = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: 'signup_email_topic', fromBeginning: true });
-
-    await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            const stringMessage = message.value.toString();
-            const signUpActivation = JSON.parse(stringMessage);
-            emailService.sendSignUpActivationCode(signUpActivation);
-        },
-    });
-}
-
-sendSignUpActivationCode().catch(console.error);
-
-//Email küldése a feladónak és a címzettnek csomagfeladás után
-async function parcelSendingNotification() {
-    await consumer.connect();
     await consumer.subscribe({ topic: 'parcelSendingNotification', fromBeginning: true });
 
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
-            const stringMessage = message.value.toString();
-            const notification = JSON.parse(stringMessage);
-            emailService.parcelSendingNotificationForSender(notification);
-            emailService.parcelSendingNotificationForReceiver(notification);
+
+            //Regisztrációs kód küldése email-ben
+            if (topic === 'signup_email_topic') {
+                const stringMessage = message.value.toString();
+                const signUpActivation = JSON.parse(stringMessage);
+                emailService.sendSignUpActivationCode(signUpActivation);
+            }
+            //Email küldése a feladónak és a címzettnek csomagfeladás után
+            if (topic === 'parcelSendingNotification') {
+                const stringMessage = message.value.toString();
+                const notification = JSON.parse(stringMessage);
+                emailService.parcelSendingNotificationForSender(notification);
+                emailService.parcelSendingNotificationForReceiver(notification);
+            }
+
         },
     });
 }
 
-parcelSendingNotification().catch(console.error);
+runConsumer().catch(console.error);
 
 
 module.exports = {
-    sendSignUpActivationCode,
-    parcelSendingNotification,
+    runConsumer,
 };

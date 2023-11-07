@@ -17,21 +17,8 @@ const isParcelLockerFull = (req, res) => {
 //Rekeszek tele vannak? Kicsi, közepes, nagy rekeszek ellenőrzése
 //Nem szükséges jwt token
 const areBoxesFull = (req, res) => {
-    //parcelLockerService.areBoxesFull(req, res);
-    
-    const response = [
-        {
-            message: "notfull",
-        },
-        {
-            message: "notfull",
-        },
-        {
-            message: "notfull",
-        },
-    ];
 
-    res.status(200).json(response);
+    parcelLockerService.areBoxesFull(req, res);
 }
 
 //Automata telítettségi adatok lekérése

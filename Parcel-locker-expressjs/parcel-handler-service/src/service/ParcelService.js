@@ -84,33 +84,6 @@ const sendParcelWithoutCode = (req, res) => {
                     res.status(200).json(response);
                 }*/
 
-                //Email küldése a feladónak és a címzettnek
-                //Értesítési objektum küldése a(z) ("parcelSendingNotificationForSender") topicnak
-                const notification = {
-                    receiverName: requestBody.receiverName,
-                    senderName: requestBody.senderName,
-                    senderEmailAddress: requestBody.senderEmailAddress,
-                    receiverEmailAddress: requestBody.receiverEmailAddress,
-                    price: requestBody.price,
-                    uniqueParcelId: requestBody.uniqueParcelId,
-                    receiverParcelLockerPostCode: receiverParcelLocker.location.postCode,
-                    receiverParcelLockerCity: receiverParcelLocker.location.city,
-                    receiverParcelLockerStreet: receiverParcelLocker.location.street,
-
-                    senderParcelLockerPostCode: senderParcelLocker.location.postCode,
-                    senderParcelLockerCity: senderParcelLocker.location.city,
-                    senderParcelLockerStreet: senderParcelLocker.location.street,
-                    sendingDate: currentDate(),
-                    sendingTime: currentTime(),
-                };
-
-                producer.parcelSendingNotification(notification)
-                    .then(() => {
-                        console.log("Üzenet elküldve");
-                    }).catch(error => {
-                        console.log(error);
-                    })
-
 
                 //Csomag létrehozása
                 Parcel.create({
@@ -155,6 +128,33 @@ const sendParcelWithoutCode = (req, res) => {
                     //Csomag és automata összerendelése
                     parcel.setParcelLocker(senderParcelLocker);
 
+                    //Email küldése a feladónak és a címzettnek
+                    //Értesítési objektum küldése a(z) ("parcelSendingNotificationForSender") topicnak
+                    const notification = {
+                        receiverName: requestBody.receiverName,
+                        senderName: requestBody.senderName,
+                        senderEmailAddress: requestBody.senderEmailAddress,
+                        receiverEmailAddress: requestBody.receiverEmailAddress,
+                        price: requestBody.price,
+                        uniqueParcelId: parcel.uniqueParcelId,
+                        receiverParcelLockerPostCode: receiverParcelLocker.location.postCode,
+                        receiverParcelLockerCity: receiverParcelLocker.location.city,
+                        receiverParcelLockerStreet: receiverParcelLocker.location.street,
+
+                        senderParcelLockerPostCode: senderParcelLocker.location.postCode,
+                        senderParcelLockerCity: senderParcelLocker.location.city,
+                        senderParcelLockerStreet: senderParcelLocker.location.street,
+                        sendingDate: currentDate(),
+                        sendingTime: currentTime(),
+                    };
+
+                    producer.parcelSendingNotification(notification)
+                        .then(() => {
+                            console.log("Üzenet elküldve");
+                        }).catch(error => {
+                            console.log(error);
+                        })
+
                     response.boxNumber = emptyBoxes[0].boxNumber;
                     response.message = "successSending";
                     res.status(200).json(response);
@@ -180,8 +180,14 @@ const sendParcelWithoutCode = (req, res) => {
 
 }
 
+//Csomagok lekérése az automatából, amik készen állnak az elszállításra
+const getParcelsForShipping = (req, res) => {
+
+}
+
 module.exports = {
     sendParcelWithoutCode,
+    getParcelsForShipping,
 };
 
 

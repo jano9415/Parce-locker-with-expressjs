@@ -183,6 +183,75 @@ const sendParcelWithoutCode = (req, res) => {
 //Csomagok lekérése az automatából, amik készen állnak az elszállításra
 const getParcelsForShipping = (req, res) => {
 
+
+
+}
+
+//Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
+//Még nincs leszállítva, el van helyezve, nincs átvéve, a csomag érkezési automatája nem ez az automata
+//Azok a csomagok is átkerülnek a futárhoz, ami már ahhoz az automatához le lett szállítva,
+//de az ügyfél nem vette át. Tehát lejárt az átvételi időpont
+const getReadyParcelsForShipping = (senderParcelLockerId) => {
+
+    const readyParcels = [];
+
+    ParcelLocker.findOne({
+        where: { id: senderParcelLockerId },
+        include: {
+            model: Parcel,
+            as: "parcels",
+            include: {
+                model: ParcelLocker,
+                as: "shippingTo"
+            }
+        }
+    }).then(parcelLocker => {
+        parcelLocker.parcels.map(parcel => {
+            //Csomagok, amiket el kell szállítani majd az érkezési automatához
+            if (parcel.shipped === false && parcel.placed && parcel.pickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
+                readyParcels.push(parcel);
+
+                //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
+                if (isPickingUpDateTimeExpired(parcel)) {
+                    readyParcels.push(parcel);
+                    Parcel.findOne({
+                        where: { id: parcel.id },
+                    }).then(parcel => {
+                        parcel.pickingUpExpired = true;
+                        parcel.shippingDate = null;
+                        parcel.shippingTime = null;
+                        parcel.save();
+                    }).catch(error => {
+
+                    })
+                }
+            }
+        });
+        return readyParcels;
+
+    }).catch(error => {
+
+    })
+}
+
+//Csomag átvételi ideje lejárt?
+const isPickingUpDateTimeExpired = (parcel) => {
+
+    let result = false;
+
+    //Ha a csomag már le van szállítva
+    if (parcel.shipped && parcel.pickingUpExpirationDate !== null && parcel.pickingUpExpirationTime !== null) {
+
+        //Ha a jelenlegi dátum és a lejárati dátum megegyezik, akkor az időpontokat kell megvizsgálni
+        if (currentDate() === parcel.pickingUpExpirationDate && currentTime() > parcel.pickingUpExpirationTime) {
+            result = true;
+        }
+        //Ha a jelenlegi dátum nagyobb, mint a lejárati dátum
+        if (currentDate() > parcel.pickingUpExpirationDate) {
+            result = true;
+        }
+    }
+    return result;
 }
 
 module.exports = {

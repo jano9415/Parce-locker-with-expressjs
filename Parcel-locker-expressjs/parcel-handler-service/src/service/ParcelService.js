@@ -183,8 +183,38 @@ const sendParcelWithoutCode = (req, res) => {
 //Csomagok lekérése az automatából, amik készen állnak az elszállításra
 const getParcelsForShipping = (req, res) => {
 
+    const senderParcelLockerId = req.params.senderParcelLockerId;
+    const response = [];
 
+    getReadyParcelsForShipping(senderParcelLockerId).map(parcel => {
+        const responseObj = {};
+        responseObj.uniqueParcelId = parcel.uniqueParcelId;
+        response.price = parcel.price;
 
+        responseObj.senderParcelLockerPostCode(parcel.shippingFrom.location.postCode);
+        responseObj.senderParcelLockerCounty(parcel.shippingFrom.location.county);
+        responseObj.senderParcelLockerCity(parcel.shippingFrom.location.city);
+        responseObj.senderParcelLockerStreet(parcel.shippingFrom.location.street);
+
+        responseObj.receiverParcelLockerPostCode(parcel.shippingTo.location.postCode);
+        responseObj.receiverParcelLockerCounty(parcel.shippingTo.location.county);
+        responseObj.receiverParcelLockerCity(parcel.shippingTo.location.city);
+        responseObj.receiverParcelLockerStreet(parcel.shippingTo.location.street);
+
+        responseObj.boxNumber(parcel.box.boxNumber);
+
+        response.push(responseObj);
+    });
+
+    res.status(200).json(response);
+
+}
+
+//Automata kiürítése. Elszállításra váró csomagok átkerülnek a futárhoz
+//Jwt token szükséges
+const emptyParcelLocker = (req, res) => {
+
+    const requestBody = req.body;
 }
 
 //Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
@@ -195,16 +225,36 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
 
     const readyParcels = [];
 
+
     ParcelLocker.findOne({
         where: { id: senderParcelLockerId },
         include: {
             model: Parcel,
             as: "parcels",
-            include: {
-                model: ParcelLocker,
-                as: "shippingTo"
-            }
+            include: [
+                {
+                    model: Box,
+                    as: "box"
+                },
+                {
+                    model: ParcelLocker,
+                    as: "shippingTo",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                },
+                {
+                    model: ParcelLocker,
+                    as: " shippingFrom",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                }
+            ]
         }
+
     }).then(parcelLocker => {
         parcelLocker.parcels.map(parcel => {
             //Csomagok, amiket el kell szállítani majd az érkezési automatához

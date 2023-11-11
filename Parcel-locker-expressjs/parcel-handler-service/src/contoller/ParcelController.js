@@ -15,7 +15,15 @@ const getParcelsForShipping = (req, res) => {
     parcelService.getParcelsForShipping(req, res);
 }
 
+//Automata kiürítése. Elszállításra váró csomagok átkerülnek a futárhoz
+//Jwt token szükséges
+//Courier szerepkör szükséges
+const emptyParcelLocker = (req, res) => {
+    parcelService.emptyParcelLocker(req, res);
+}
+
 module.exports = {
     sendParcelWithoutCode,
     getParcelsForShipping,
+    emptyParcelLocker,
 };

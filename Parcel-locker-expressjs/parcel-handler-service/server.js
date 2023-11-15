@@ -5,6 +5,7 @@ const courierRoute = require("./src/route/CourierRoute");
 const { sequelize, Courier, Parcel } = require("./src/sequelize/models");
 const userRoute = require("./src/route/UserRoute");
 const initDb = require("./src/config/InitDatabase");
+const storeRoute = require("./src/route/StoreRoute");
 
 const app = express();
 const port = 8081;
@@ -16,6 +17,7 @@ app.use("/parcelhandler/parcel", parcelRoute);
 app.use("/parcelhandler/parcellocker", parcelLockerRoute);
 app.use("/parcelhandler/user", userRoute);
 app.use("/parcelhandler/courier", courierRoute)
+app.use("/parcelhandler/store", storeRoute);
 
 //sequelize.sync();
 //initDb.initAddress();

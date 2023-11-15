@@ -95,8 +95,8 @@ const sendParcelWithoutCode = (req, res) => {
                     price: requestBody.price,
                     receiverName: requestBody.receiverName,
                     receiverEmailAddress: requestBody.receiverEmailAddress,
-                    shipped: false,
-                    pickedUp: false,
+                    isShipped: false,
+                    isPickedUp: false,
 
                     sendingDate: currentDate(),
                     sendingTime: currentTime(),
@@ -104,7 +104,7 @@ const sendParcelWithoutCode = (req, res) => {
                     shippingTime: null,
                     pickingUpDate: null,
                     pickingUpTime: null,
-                    placed: true,
+                    isPlaced: true,
                     pickingUpCode: generateRandomString(5),
 
                 }).then(parcel => {
@@ -186,6 +186,9 @@ const getParcelsForShipping = (req, res) => {
     const senderParcelLockerId = req.params.senderParcelLockerId;
     const response = [];
 
+    getReadyParcelsForShipping(senderParcelLockerId);
+
+    /*
     getReadyParcelsForShipping(senderParcelLockerId).map(parcel => {
         const responseObj = {};
         responseObj.uniqueParcelId = parcel.uniqueParcelId;
@@ -205,6 +208,7 @@ const getParcelsForShipping = (req, res) => {
 
         response.push(responseObj);
     });
+    */
 
     res.status(200).json(response);
 
@@ -224,6 +228,47 @@ const emptyParcelLocker = (req, res) => {
 const getReadyParcelsForShipping = (senderParcelLockerId) => {
 
     const readyParcels = [];
+
+    console.log("Az id: " + senderParcelLockerId);
+
+    ParcelLocker.findOne({
+        where: { id: senderParcelLockerId },
+        include: {
+            model: Parcel,
+            as: "parcels",
+            include: [
+                {
+                    model: Box,
+                    as: "box"
+                },
+                {
+                    model: ParcelLocker,
+                    as: "shippingTo",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                },
+                {
+                    model: ParcelLocker,
+                    as: "shippingFrom",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                }
+            ]
+        }
+    }).then(parcelLocker => {
+        parcelLocker.parcels.map(parcel => {
+            if (parcel.isShipped === false && parcel.isPlaced && parcel.isPickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
+                readyParcels.push(parcel);
+                console.log("aaaaaaaaaa: " + readyParcels.length);
+            }
+        })
+    }).catch(error => {
+
+    })
 
 
     ParcelLocker.findOne({
@@ -258,7 +303,7 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
     }).then(parcelLocker => {
         parcelLocker.parcels.map(parcel => {
             //Csomagok, amiket el kell szállítani majd az érkezési automatához
-            if (parcel.shipped === false && parcel.placed && parcel.pickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
+            if (parcel.isShipped === false && parcel.isPlaced && parcel.isPickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
                 readyParcels.push(parcel);
 
                 //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
@@ -270,13 +315,14 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
                         parcel.pickingUpExpired = true;
                         parcel.shippingDate = null;
                         parcel.shippingTime = null;
-                        parcel.save();
+                        //parcel.save();
                     }).catch(error => {
 
                     })
                 }
             }
         });
+        console.log("Readyyyyyyyyyyyyyyyyyyyyyyyyy: " + readyParcels);
         return readyParcels;
 
     }).catch(error => {

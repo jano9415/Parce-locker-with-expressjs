@@ -13,7 +13,23 @@ const createCourier = (req, res) => {
     courierService.createCourier(req, res);
 }
 
+//Összes futár lekérése
+//Jwt token szükséges
+//Admin szerepkör szükséges
+const getCouriers = (req, res) => {
+    courierService.getCouriers(req, res);
+}
+
+//Futár lekérése id alapján
+//Jwt token szükséges
+//Admin szerepkör szükséges
+const findCourierById = (req, res) => {
+    courierService.findCourierById(req, res);
+}
+
 module.exports = {
     isCourierEligible,
     createCourier,
+    getCouriers,
+    findCourierById,
 };

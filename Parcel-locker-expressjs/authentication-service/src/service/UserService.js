@@ -251,7 +251,7 @@ const courierLogin = (req, res) => {
                 axios.get("http://localhost:8081/parcelhandler/courier/iscouriereligible/" + parcelLockerId + "/" + user.emailAddress)
                     .then(response => {
                         //Ha nem jogosult a futár a bejelentkezésre
-                        if (response.body.message === "notEligible") {
+                        if (response.data.message === "notEligible") {
                             stringResponse.message = "notEligible";
                             res.status(200).json(stringResponse);
                         }
@@ -352,7 +352,7 @@ const createCourier = (req, res) => {
                                 .then(role => {
                                     const newCourier = new User({
                                         emailAddress: requestBody.uniqueCourierId,
-                                        password: requestBody.password,
+                                        password: sha256Pass,
                                         enable: true,
                                         roles: [role]
                                     });
@@ -377,7 +377,7 @@ const createCourier = (req, res) => {
                                     })
 
 
-                                    stringResponse.message("successCourierCreation");
+                                    stringResponse.message = "successCourierCreation";
                                     res.status(200).json(stringResponse);
                                 })
                                 .catch(error => {

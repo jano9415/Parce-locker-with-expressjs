@@ -97,9 +97,9 @@ const getSaturationDatas = (req, res) => {
         response.amountOfSmallBoxes = parcelLocker.amountOfSmallBoxes;
         response.amountOfMediumBoxes = parcelLocker.amountOfMediumBoxes;
         response.amountOfLargeBoxes = parcelLocker.amountOfLargeBoxes;
-        response.amountOfFullSmallBoxes = 0;
-        response.amountOfFullMediumBoxes = 0;
-        response.amountOfFullLargeBoxes = 0;
+        response.amountOfFullSmallBoxes = amounts[0];
+        response.amountOfFullMediumBoxes = amounts[1];
+        response.amountOfFullLargeBoxes = amounts[2];
 
         res.status(200).json(response);
 
@@ -198,6 +198,7 @@ const fullBoxesNumber = (parcelLockerId) => {
         }
     }).then(parcelLocker => {
         parcelLocker.parcels.map(parcel => {
+            console.log("Ez a csomaaaaaaaaaaaaaaaaaaa: " + parcel);
             if (parcel.box.size === "small") {
                 smallCounter++;
             }
@@ -208,6 +209,9 @@ const fullBoxesNumber = (parcelLockerId) => {
                 largeCounter++;
             }
         })
+        console.log("Kicsiiiiiiiiiiiiiiiiiiiii: " + smallCounter);
+        console.log("Közepessssssssssssssssssssssssssssssss: " + mediumCounter);
+        console.log("Nagyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy: " + largeCounter);
         amounts.push(smallCounter);
         amounts.push(mediumCounter);
         amounts.push(largeCounter);

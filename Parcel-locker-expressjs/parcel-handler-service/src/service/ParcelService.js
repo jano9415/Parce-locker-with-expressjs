@@ -186,51 +186,6 @@ const getParcelsForShipping = (req, res) => {
     const senderParcelLockerId = req.params.senderParcelLockerId;
     const response = [];
 
-    getReadyParcelsForShipping(senderParcelLockerId);
-
-    /*
-    getReadyParcelsForShipping(senderParcelLockerId).map(parcel => {
-        const responseObj = {};
-        responseObj.uniqueParcelId = parcel.uniqueParcelId;
-        response.price = parcel.price;
-
-        responseObj.senderParcelLockerPostCode(parcel.shippingFrom.location.postCode);
-        responseObj.senderParcelLockerCounty(parcel.shippingFrom.location.county);
-        responseObj.senderParcelLockerCity(parcel.shippingFrom.location.city);
-        responseObj.senderParcelLockerStreet(parcel.shippingFrom.location.street);
-
-        responseObj.receiverParcelLockerPostCode(parcel.shippingTo.location.postCode);
-        responseObj.receiverParcelLockerCounty(parcel.shippingTo.location.county);
-        responseObj.receiverParcelLockerCity(parcel.shippingTo.location.city);
-        responseObj.receiverParcelLockerStreet(parcel.shippingTo.location.street);
-
-        responseObj.boxNumber(parcel.box.boxNumber);
-
-        response.push(responseObj);
-    });
-    */
-
-    res.status(200).json(response);
-
-}
-
-//Automata kiürítése. Elszállításra váró csomagok átkerülnek a futárhoz
-//Jwt token szükséges
-const emptyParcelLocker = (req, res) => {
-
-    const requestBody = req.body;
-}
-
-//Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
-//Még nincs leszállítva, el van helyezve, nincs átvéve, a csomag érkezési automatája nem ez az automata
-//Azok a csomagok is átkerülnek a futárhoz, ami már ahhoz az automatához le lett szállítva,
-//de az ügyfél nem vette át. Tehát lejárt az átvételi időpont
-const getReadyParcelsForShipping = (senderParcelLockerId) => {
-
-    const readyParcels = [];
-
-    console.log("Az id: " + senderParcelLockerId);
-
     ParcelLocker.findOne({
         where: { id: senderParcelLockerId },
         include: {
@@ -261,15 +216,90 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
         }
     }).then(parcelLocker => {
         parcelLocker.parcels.map(parcel => {
+
+            //Csomagok, amiket el kell szállítani majd az érkezési automatához
             if (parcel.isShipped === false && parcel.isPlaced && parcel.isPickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
-                readyParcels.push(parcel);
-                console.log("aaaaaaaaaa: " + readyParcels.length);
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                response.push(responseObj);
             }
-        })
+            //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
+            if (isPickingUpDateTimeExpired(parcel) === false) {
+                response.push(parcel);
+                Parcel.findOne({
+                    where: { id: parcel.id },
+                }).then(parcel => {
+                    parcel.isPickingUpExpired = true;
+                    parcel.shippingDate = null;
+                    parcel.shippingTime = null;
+                    return parcel.save();
+                }).then(updated => {
+                    if(updated){
+                        console.log("aaaaaaaaaaaaaaaaaaaaa");
+                    }
+                    else{
+                        console.log("bbbbbbbbbbbbbbbbb");
+                    }
+                })
+            }
+
+        });
+        res.status(200).json(response);
+
     }).catch(error => {
 
     })
 
+
+    /*
+    getReadyParcelsForShipping(senderParcelLockerId).map(parcel => {
+        const responseObj = {};
+        responseObj.uniqueParcelId = parcel.uniqueParcelId;
+        response.price = parcel.price;
+
+        responseObj.senderParcelLockerPostCode(parcel.shippingFrom.location.postCode);
+        responseObj.senderParcelLockerCounty(parcel.shippingFrom.location.county);
+        responseObj.senderParcelLockerCity(parcel.shippingFrom.location.city);
+        responseObj.senderParcelLockerStreet(parcel.shippingFrom.location.street);
+
+        responseObj.receiverParcelLockerPostCode(parcel.shippingTo.location.postCode);
+        responseObj.receiverParcelLockerCounty(parcel.shippingTo.location.county);
+        responseObj.receiverParcelLockerCity(parcel.shippingTo.location.city);
+        responseObj.receiverParcelLockerStreet(parcel.shippingTo.location.street);
+
+        responseObj.boxNumber(parcel.box.boxNumber);
+
+        response.push(responseObj);
+    });
+    */
+
+}
+
+
+//Automata kiürítése. Elszállításra váró csomagok átkerülnek a futárhoz
+//Jwt token szükséges
+const emptyParcelLocker = (req, res) => {
+
+    const requestBody = req.body;
+}
+
+//Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
+//Még nincs leszállítva, el van helyezve, nincs átvéve, a csomag érkezési automatája nem ez az automata
+//Azok a csomagok is átkerülnek a futárhoz, ami már ahhoz az automatához le lett szállítva,
+//de az ügyfél nem vette át. Tehát lejárt az átvételi időpont
+const getReadyParcelsForShipping = (senderParcelLockerId) => {
+
+    const readyParcels = [];
 
     ParcelLocker.findOne({
         where: { id: senderParcelLockerId },
@@ -322,7 +352,6 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
                 }
             }
         });
-        console.log("Readyyyyyyyyyyyyyyyyyyyyyyyyy: " + readyParcels);
         return readyParcels;
 
     }).catch(error => {

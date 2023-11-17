@@ -1,4 +1,4 @@
-const { Parcel, ParcelLocker, Box, Address } = require("../sequelize/models");
+const { Parcel, ParcelLocker, Box, Address, Courier } = require("../sequelize/models");
 const initDb = require("../config/InitDatabase");
 const { DATEONLY, TIME } = require("sequelize");
 const producer = require("../kafka/Producer");
@@ -186,6 +186,7 @@ const getParcelsForShipping = (req, res) => {
     const senderParcelLockerId = req.params.senderParcelLockerId;
     const response = [];
 
+
     ParcelLocker.findOne({
         where: { id: senderParcelLockerId },
         include: {
@@ -234,8 +235,21 @@ const getParcelsForShipping = (req, res) => {
                 response.push(responseObj);
             }
             //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
-            if (isPickingUpDateTimeExpired(parcel) === false) {
-                response.push(parcel);
+            if (isPickingUpDateTimeExpired(parcel)) {
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                response.push(responseObj);
+                //Adatok módosítása
                 Parcel.findOne({
                     where: { id: parcel.id },
                 }).then(parcel => {
@@ -243,13 +257,15 @@ const getParcelsForShipping = (req, res) => {
                     parcel.shippingDate = null;
                     parcel.shippingTime = null;
                     return parcel.save();
-                }).then(updated => {
-                    if(updated){
-                        console.log("aaaaaaaaaaaaaaaaaaaaa");
+                }).then(updatedParcel => {
+                    if (updatedParcel) {
+                        console.log("Sikeresen frissítve");
                     }
-                    else{
-                        console.log("bbbbbbbbbbbbbbbbb");
+                    else {
+                        console.log("Nem sikerült frissíteni");
                     }
+                }).catch(error => {
+
                 })
             }
 
@@ -259,7 +275,6 @@ const getParcelsForShipping = (req, res) => {
     }).catch(error => {
 
     })
-
 
     /*
     getReadyParcelsForShipping(senderParcelLockerId).map(parcel => {
@@ -291,6 +306,100 @@ const getParcelsForShipping = (req, res) => {
 const emptyParcelLocker = (req, res) => {
 
     const requestBody = req.body;
+
+    const response = [];
+
+
+    ParcelLocker.findOne({
+        where: { id: requestBody.parcelLockerId },
+        include: {
+            model: Parcel,
+            as: "parcels",
+            include: [
+                {
+                    model: Box,
+                    as: "box"
+                },
+                {
+                    model: ParcelLocker,
+                    as: "shippingTo",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                },
+                {
+                    model: ParcelLocker,
+                    as: "shippingFrom",
+                    include: {
+                        model: Address,
+                        as: "location"
+                    }
+                }
+            ]
+        }
+    }).then(parcelLocker => {
+        parcelLocker.parcels.map(parcel => {
+
+            //Csomagok, amiket el kell szállítani majd az érkezési automatához
+            if (parcel.isShipped === false && parcel.isPlaced && parcel.isPickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                response.push(responseObj);
+            }
+            //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
+            if (isPickingUpDateTimeExpired(parcel)) {
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                response.push(responseObj);
+                //Adatok módosítása
+                Parcel.findOne({
+                    where: { id: parcel.id },
+                }).then(parcel => {
+                    parcel.isPickingUpExpired = true;
+                    parcel.shippingDate = null;
+                    parcel.shippingTime = null;
+                    return parcel.save();
+                }).then(updatedParcel => {
+                    if (updatedParcel) {
+                        console.log("Sikeresen frissítve");
+                    }
+                    else {
+                        console.log("Nem sikerült frissíteni");
+                    }
+                }).catch(error => {
+
+                })
+            }
+
+        });
+        res.status(200).json(response);
+
+    }).catch(error => {
+
+    })
+
+
 }
 
 //Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
@@ -321,7 +430,7 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
                 },
                 {
                     model: ParcelLocker,
-                    as: " shippingFrom",
+                    as: "shippingFrom",
                     include: {
                         model: Address,
                         as: "location"
@@ -329,30 +438,61 @@ const getReadyParcelsForShipping = (senderParcelLockerId) => {
                 }
             ]
         }
-
     }).then(parcelLocker => {
         parcelLocker.parcels.map(parcel => {
+
             //Csomagok, amiket el kell szállítani majd az érkezési automatához
             if (parcel.isShipped === false && parcel.isPlaced && parcel.isPickedUp === false && parcel.shippingTo.id !== senderParcelLockerId) {
-                readyParcels.push(parcel);
-
-                //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
-                if (isPickingUpDateTimeExpired(parcel)) {
-                    readyParcels.push(parcel);
-                    Parcel.findOne({
-                        where: { id: parcel.id },
-                    }).then(parcel => {
-                        parcel.pickingUpExpired = true;
-                        parcel.shippingDate = null;
-                        parcel.shippingTime = null;
-                        //parcel.save();
-                    }).catch(error => {
-
-                    })
-                }
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                readyParcels.push(responseObj);
             }
+            //Csomag ami már ide lett szállítva, de lejárt az átvételi dátum
+            if (isPickingUpDateTimeExpired(parcel)) {
+                const responseObj = {
+                    uniqueParcelId: parcel.uniqueParcelId,
+                    boxNumber: parcel.box.boxNumber,
+                    senderParcelLockerPostCode: parcel.shippingFrom.location.postCode,
+                    senderParcelLockerCounty: parcel.shippingFrom.location.county,
+                    senderParcelLockerCity: parcel.shippingFrom.location.city,
+                    senderParcelLockerStreet: parcel.shippingFrom.location.street,
+                    receiverParcelLockerPostCode: parcel.shippingTo.location.postCode,
+                    receiverParcelLockerCounty: parcel.shippingTo.location.county,
+                    receiverParcelLockerCity: parcel.shippingTo.location.city,
+                    receiverParcelLockerStreet: parcel.shippingTo.location.street,
+                };
+                readyParcels.push(responseObj);
+                //Adatok módosítása
+                Parcel.findOne({
+                    where: { id: parcel.id },
+                }).then(parcel => {
+                    parcel.isPickingUpExpired = true;
+                    parcel.shippingDate = null;
+                    parcel.shippingTime = null;
+                    return parcel.save();
+                }).then(updatedParcel => {
+                    if (updatedParcel) {
+                        console.log("Sikeresen frissítve");
+                    }
+                    else {
+                        console.log("Nem sikerült frissíteni");
+                    }
+                }).catch(error => {
+
+                })
+            }
+
         });
-        return readyParcels;
 
     }).catch(error => {
 
@@ -382,6 +522,7 @@ const isPickingUpDateTimeExpired = (parcel) => {
 module.exports = {
     sendParcelWithoutCode,
     getParcelsForShipping,
+    emptyParcelLocker,
 };
 
 

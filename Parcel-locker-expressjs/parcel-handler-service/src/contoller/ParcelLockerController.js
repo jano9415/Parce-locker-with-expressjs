@@ -31,5 +31,5 @@ module.exports = {
     getParcelLockersForChoice,
     isParcelLockerFull,
     areBoxesFull,
-    getSaturationDatas
+    getSaturationDatas,
 };

@@ -22,8 +22,26 @@ const emptyParcelLocker = (req, res) => {
     parcelService.emptyParcelLocker(req, res);
 }
 
+//Futárnál lévő csomagok lekérése. Csak olyan csomagok, amik az adott automatához tartoznak és van nekik szabad rekesz
+//Jwt token szükséges
+//Courier szerepkör szükséges
+const getParcelsForParcelLocker = (req, res) => {
+    parcelService.getParcelsForParcelLocker(req, res);
+}
+
+//Automata feltöltése
+//Jwt token szükséges
+//Courier szerepkör szükséges
+const fillParcelLocker = (req, res) => {
+    parcelService.fillParcelLocker(req, res);
+}
+
+
 module.exports = {
     sendParcelWithoutCode,
     getParcelsForShipping,
     emptyParcelLocker,
+    getParcelsForParcelLocker,
+    fillParcelLocker,
+
 };

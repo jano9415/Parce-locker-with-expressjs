@@ -402,6 +402,32 @@ const emptyParcelLocker = (req, res) => {
 
 }
 
+//Futárnál lévő csomagok lekérése. Csak olyan csomagok, amik az adott automatához tartoznak és van nekik szabad rekesz
+//Jwt token szükséges
+const getParcelsForParcelLocker = (req, res) => {
+
+    const senderParcelLockerId = req.params.senderParcelLockerId;
+    const uniqueCourierId = req.params.uniqueCourierId;
+
+    const response = [];
+
+}
+
+//Automata feltöltése
+//Ez a kérés csak akkor van meghívva, ha a futárnak vannak csomagjai az adott automatához, és azoknak van hely
+//Frontend oldalon a gomb aktív vagy inaktív
+//Ezt tartalmazza az előző függvény
+//Jwt token szükséges
+//Visszatérés a csomagazonosítókkal és a rekesz számokkal
+const fillParcelLocker = (req, res) => {
+
+    const senderParcelLockerId = req.params.senderParcelLockerId;
+    const uniqueCourierId = req.params.uniqueCourierId;
+
+    
+
+}
+
 //Automatában megtalálható csomagok keresése. Ezek a csomagok készen állnak az elszállításra
 //Még nincs leszállítva, el van helyezve, nincs átvéve, a csomag érkezési automatája nem ez az automata
 //Azok a csomagok is átkerülnek a futárhoz, ami már ahhoz az automatához le lett szállítva,
@@ -523,6 +549,8 @@ module.exports = {
     sendParcelWithoutCode,
     getParcelsForShipping,
     emptyParcelLocker,
+    getParcelsForParcelLocker,
+    fillParcelLocker,
 };
 
 
